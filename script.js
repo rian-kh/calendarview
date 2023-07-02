@@ -7,10 +7,11 @@ let userId;
 // Code ran on page load
 let authCode = new URLSearchParams(window.location.search).get('code');
 let accessToken;
+let allMedia = {};
+
 
 onPageLoad();
 
-console.log(`Code: ${authCode}`)
 
 async function onPageLoad() {
     console.log(`Code: ${authCode}`)
@@ -20,6 +21,7 @@ async function onPageLoad() {
         console.log(accessToken)
 
         await getMedia()
+        console.log(allMedia)
     }
 
 }
@@ -58,16 +60,34 @@ async function getMedia() {
     let result = await fetch(`http://localhost:8080/https://graph.instagram.com/me/media?access_token=${accessToken}`)
                        .then((result) => result.json()).then((result) => result.data);
 
-    
-    
     for (let media of result) {
 
         let mediaResult = await fetch(`http://localhost:8080/https://graph.instagram.com/${media.id}?access_token=${accessToken}&fields=id,media_type,media_url,username,timestamp,caption,permalink,children`)
                            .then((result) => result.json());
 
-        console.log(mediaResult)
+        let temp = {};
+        temp[media.id] = mediaResult;
+
+        Object.assign(allMedia, temp);
+
     }
 
+}
 
 
+async function saveMediaJSON() {
+    var a = document.createElement("a");
+    var file = new Blob([JSON.stringify(allMedia, null, "\t")], {type: 'application/json'});
+    a.href = URL.createObjectURL(file);
+    a.download = 'instagram-media.json';
+    a.click();
+}
+
+async function loadMediaJSON() {
+    let file = document.getElementById('getFile').files[0]
+    let text = await file.text()
+
+    allMedia = JSON.parse(text);
+
+    console.log(allMedia)
 }

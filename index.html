@@ -8,5 +8,11 @@
     <body>
         <h1 id="header">Hello world</h1>
         <button id="button" onclick="redirect()">Get Instagram data</button>
+
+        <!-- Adapted from https://stackoverflow.com/a/43509579/21809626 -->
+        <button onclick="document.getElementById('getFile').click()">Load Instagram data JSON</button>
+        <input type='file' id="getFile" onchange="loadMediaJSON()">
+
+        <button onclick="saveMediaJSON()">Save Instagram data JSON</button>
     </body>
 </html>

@@ -1,3 +1,7 @@
 #header {
     color:aquamarine;
 }
+
+#getFile {
+    display: none;
+}
