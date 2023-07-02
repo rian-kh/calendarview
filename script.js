@@ -17,7 +17,11 @@ async function onPageLoad() {
 
     if (authCode) {
         accessToken = await getAccessToken();
+        console.log(accessToken)
+
+        await getMedia()
     }
+
 }
 
 
@@ -45,6 +49,24 @@ async function getAccessToken() {
         method: 'POST',
         body: form
         }).then((result) => result.json());
+
+    return result.access_token;
+
+}
+
+async function getMedia() {
+    let result = await fetch(`http://localhost:8080/https://graph.instagram.com/me/media?access_token=${accessToken}`)
+                       .then((result) => result.json()).then((result) => result.data);
+
+    
+    
+    for (let media of result) {
+
+        let mediaResult = await fetch(`http://localhost:8080/https://graph.instagram.com/${media.id}?access_token=${accessToken}&fields=id,media_type,media_url,username,timestamp,caption,permalink,children`)
+                           .then((result) => result.json());
+
+        console.log(mediaResult)
+    }
 
 
 
