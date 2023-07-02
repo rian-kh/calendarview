@@ -41,12 +41,11 @@ async function getAccessToken() {
     form.append('redirect_uri', 'https://localhost:5173/');
     form.append('code', authCode);
 
-    
-    let result = fetch('http://localhost:8080/https://api.instagram.com/oauth/access_token', {
-                 method: 'POST',
-                 body: form
-                 }).then((result) => result.json());
+    let result = await fetch('http://localhost:8080/https://api.instagram.com/oauth/access_token', {
+        method: 'POST',
+        body: form
+        }).then((result) => result.json());
 
 
-    console.log(result)
+
 }
