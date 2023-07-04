@@ -22,6 +22,7 @@ async function onPageLoad() {
 
         await getMedia()
         console.log(allMedia)
+        console.log(Object.keys(allMedia.data).length)
     }
 
 }
@@ -39,6 +40,7 @@ function redirect() {
     window.location.href = `https://api.instagram.com/oauth/authorize?client_id=${user}&redirect_uri=https://localhost:5173/&scope=user_profile,user_media&response_type=code`;
 }
 
+
 async function getAccessToken() {
     const form = new FormData();
     form.append('client_id', user);
@@ -52,8 +54,7 @@ async function getAccessToken() {
         body: form
     }).then((result) => result.json());
 
-
-    
+    // Set user id in media dict
     allMedia["user"] = result.user_id;
 
     return result.access_token;
@@ -62,49 +63,60 @@ async function getAccessToken() {
 
 async function getMedia() {
 
+    let endpoint;
 
-    let endpoint = `http://localhost:8080/https://graph.instagram.com/me/media?access_token=${accessToken}`;
-    allMedia["data"] = {}
+    // Continue off previous fetched media, otherwise fetch from beginning
+    if (localStorage.getItem("allMedia")) {
+        allMedia = JSON.parse(localStorage.getItem("allMedia"));
+        endpoint = allMedia.endpoint;
+    } else {
+        endpoint = `http://localhost:8080/https://graph.instagram.com/me/media?access_token=${accessToken}`;
+        allMedia["data"] = {}
+    }
+
+
+
 
     // Loop while the endpoint is not null (has a 'next' redirect)
     while (endpoint) {
 
         let result;
 
-
+        // Fetch media IDs, 25 posts per fetch
         result = await fetch(endpoint)
             .then((result) => result.json());
 
-
+        // Exit fetching if rate limit is hit
         if (result.error) {
-            console.log(`Only ${allMedia["data"].length} posts were retrieved, please press "Get Instagram data" in an hour to continue retrieving all posts.`)
-            break;
+            handleMediaError(endpoint);
+            return;
         }
 
 
         console.log(result)
 
-        for(let media of result.data) { 
+        // Fetch media information for each ID
+        for (let media of result.data) {
 
             let mediaResult = await fetch(`http://localhost:8080/https://graph.instagram.com/${media.id}?access_token=${accessToken}&fields=id,media_type,media_url,username,timestamp,caption,permalink,children`)
                 .then((result) => result.json());
 
             if (mediaResult.error) {
-                console.log(`Only ${allMedia["data"].length} posts were retrieved, please press "Get Instagram data" in an hour to continue retrieving all posts.`)
-                break;
+                handleMediaError(endpoint)
+                return;
             }
+            
+            // Add media info by ID in allMedia's data key
             let temp = {};
             temp[media.id] = mediaResult;
-
             Object.assign(allMedia["data"], temp);
 
         }
 
-
+        // Advance to next page
         endpoint = result.paging.next;
-
+        
     }
-
 
 }
 
@@ -117,6 +129,7 @@ async function saveMediaJSON() {
     a.click();
 }
 
+
 async function loadMediaJSON() {
     let file = document.getElementById('getFile').files[0]
     let text = await file.text()
@@ -125,4 +138,12 @@ async function loadMediaJSON() {
 
     console.log(allMedia)
     console.log(Object.keys(allMedia["data"]).length)
+}
+
+function handleMediaError(endpoint) {
+    console.log(`Only ${Object.keys(allMedia["data"]).length} posts were retrieved, please press "Get Instagram data" in an hour to continue retrieving all posts.`);
+
+    // Save allMedia to local storage w/ failed endpoint
+    allMedia["endpoint"] = endpoint;
+    localStorage.setItem("allMedia", JSON.stringify(allMedia));
 }
