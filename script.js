@@ -75,11 +75,12 @@ async function getMedia() {
     }
 
 
-
-
+    console.log("HI")
+    console.log(allMedia)
+    
     // Loop while the endpoint is not null (has a 'next' redirect)
     while (endpoint) {
-
+        console.log(`Current endpoint: ${endpoint}`)
         let result;
 
         // Fetch media IDs, 25 posts per fetch
@@ -92,7 +93,7 @@ async function getMedia() {
             return;
         }
 
-
+        
         console.log(result)
 
         // Fetch media information for each ID
@@ -115,13 +116,19 @@ async function getMedia() {
 
         // Advance to next page
         endpoint = result.paging.next;
+        console.log(`Advanced endpoint: ${endpoint}`)
         
     }
+
+
+    // Once fully complete, save allMedia to local storage
+    allMedia["endpoint"] = null;
+    localStorage.setItem("allMedia", JSON.stringify(allMedia));
 
 }
 
 
-async function saveMediaJSON() {
+function saveMediaJSON() {
     var a = document.createElement("a");
     var file = new Blob([JSON.stringify(allMedia, null, "\t")], { type: 'application/json' });
     a.href = URL.createObjectURL(file);
