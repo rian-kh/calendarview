@@ -50,34 +50,68 @@ async function getAccessToken() {
     let result = await fetch('http://localhost:8080/https://api.instagram.com/oauth/access_token', {
         method: 'POST',
         body: form
-        }).then((result) => result.json());
+    }).then((result) => result.json());
+
+
+    
+    allMedia["user"] = result.user_id;
 
     return result.access_token;
 
 }
 
 async function getMedia() {
-    let result = await fetch(`http://localhost:8080/https://graph.instagram.com/me/media?access_token=${accessToken}`)
-                       .then((result) => result.json()).then((result) => result.data);
 
-    for (let media of result) {
 
-        let mediaResult = await fetch(`http://localhost:8080/https://graph.instagram.com/${media.id}?access_token=${accessToken}&fields=id,media_type,media_url,username,timestamp,caption,permalink,children`)
-                           .then((result) => result.json());
+    let endpoint = `http://localhost:8080/https://graph.instagram.com/me/media?access_token=${accessToken}`;
+    allMedia["data"] = {}
 
-        let temp = {};
-        temp[media.id] = mediaResult;
+    // Loop while the endpoint is not null (has a 'next' redirect)
+    while (endpoint) {
 
-        Object.assign(allMedia, temp);
+        let result;
+
+
+        result = await fetch(endpoint)
+            .then((result) => result.json());
+
+
+        if (result.error) {
+            console.log(`Only ${allMedia["data"].length} posts were retrieved, please press "Get Instagram data" in an hour to continue retrieving all posts.`)
+            break;
+        }
+
+
+        console.log(result)
+
+        for(let media of result.data) { 
+
+            let mediaResult = await fetch(`http://localhost:8080/https://graph.instagram.com/${media.id}?access_token=${accessToken}&fields=id,media_type,media_url,username,timestamp,caption,permalink,children`)
+                .then((result) => result.json());
+
+            if (mediaResult.error) {
+                console.log(`Only ${allMedia["data"].length} posts were retrieved, please press "Get Instagram data" in an hour to continue retrieving all posts.`)
+                break;
+            }
+            let temp = {};
+            temp[media.id] = mediaResult;
+
+            Object.assign(allMedia["data"], temp);
+
+        }
+
+
+        endpoint = result.paging.next;
 
     }
+
 
 }
 
 
 async function saveMediaJSON() {
     var a = document.createElement("a");
-    var file = new Blob([JSON.stringify(allMedia, null, "\t")], {type: 'application/json'});
+    var file = new Blob([JSON.stringify(allMedia, null, "\t")], { type: 'application/json' });
     a.href = URL.createObjectURL(file);
     a.download = 'instagram-media.json';
     a.click();
@@ -90,4 +124,5 @@ async function loadMediaJSON() {
     allMedia = JSON.parse(text);
 
     console.log(allMedia)
+    console.log(Object.keys(allMedia["data"]).length)
 }
