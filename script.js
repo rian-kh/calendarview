@@ -22,8 +22,11 @@ async function onPageLoad() {
 
         await getMedia()
         console.log(allMedia)
-        console.log(Object.keys(allMedia.data).length)
+        console.log(getLength())
     }
+
+
+    
 
 }
 
@@ -102,15 +105,26 @@ async function getMedia() {
             let mediaResult = await fetch(`http://localhost:8080/https://graph.instagram.com/${media.id}?access_token=${accessToken}&fields=id,media_type,media_url,username,timestamp,caption,permalink,children`)
                 .then((result) => result.json());
 
+            console.log("H")
+            console.log(mediaResult)
+
             if (mediaResult.error) {
                 handleMediaError(endpoint)
                 return;
             }
             
             // Add media info by ID in allMedia's data key
-            let temp = {};
-            temp[media.id] = mediaResult;
-            Object.assign(allMedia["data"], temp);
+            let date = new Date(mediaResult.timestamp);
+            let month = date.toLocaleString("en-us", {month:"long"})
+            let monthDay = date.toLocaleString("en-us", {month:"long", day:"2-digit"})
+
+            if (!(allMedia["data"][month]))
+                allMedia["data"][month] = {};
+            
+            if (!(allMedia["data"][month][monthDay]))
+                allMedia["data"][month][monthDay] = {};
+
+            allMedia["data"][month][monthDay][media.id] = mediaResult;
 
         }
 
@@ -144,13 +158,28 @@ async function loadMediaJSON() {
     allMedia = JSON.parse(text);
 
     console.log(allMedia)
-    console.log(Object.keys(allMedia["data"]).length)
+    console.log(getLength())
 }
 
 function handleMediaError(endpoint) {
-    console.log(`Only ${Object.keys(allMedia["data"]).length} posts were retrieved, please press "Get Instagram data" in an hour to continue retrieving all posts.`);
+    console.log(`Only ${getLength()} posts were retrieved, please press "Get Instagram data" in an hour to continue retrieving all posts.`);
 
     // Save allMedia to local storage w/ failed endpoint
     allMedia["endpoint"] = endpoint;
     localStorage.setItem("allMedia", JSON.stringify(allMedia));
+}
+
+function getLength() {
+
+    let total = 0;
+
+    for (let month of Object.keys(allMedia["data"])) {
+        for (let day of Object.keys(month)) {
+            for (let post of Object.keys(day)) {
+                total++;
+            }
+        }
+    }
+
+    return total;
 }
