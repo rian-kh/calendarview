@@ -5,3 +5,16 @@
 #getFile {
     display: none;
 }
+
+#buttons {
+    margin-bottom: 30px;
+}
+
+.hideByDefault {
+    display: none;
+}
+
+
+
+
+

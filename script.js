@@ -10,21 +10,46 @@ let accessToken;
 let allMedia = {};
 
 
-onPageLoad();
+// Redirects to original site if reloaded, adapted from https://stackoverflow.com/a/53307588/21809626
+const pageAccessedByReload = (
+    (window.performance.navigation && window.performance.navigation.type === 1) ||
+    window.performance
+        .getEntriesByType('navigation')
+        .map((nav) => nav.type)
+        .includes('reload')
+);
 
+if (pageAccessedByReload)
+    document.location = "https://localhost:5173"
+
+
+
+window.onload = onPageLoad;
 
 async function onPageLoad() {
     console.log(`Code: ${authCode}`)
 
+    // Fetch data if redirected back from auth
     if (authCode) {
         accessToken = await getAccessToken();
         console.log(accessToken)
 
         await getMedia()
-        console.log(allMedia)
-        console.log(getLength())
+
+    } 
+    
+    // Load data if stored media data is complete (endpoint is null)
+    else if (localStorage.getItem("allMedia")){
+        if (!(JSON.parse(localStorage.getItem("allMedia"))["endpoint"])){
+            allMedia = JSON.parse(localStorage.getItem("allMedia"));
+        }
     }
 
+    // Update UI if allMedia is populated
+    if (Object.keys(allMedia).length > 0)
+        updateUI()
+
+    
 
     
 
@@ -71,7 +96,11 @@ async function getMedia() {
     // Continue off previous fetched media, otherwise fetch from beginning
     if (localStorage.getItem("allMedia")) {
         allMedia = JSON.parse(localStorage.getItem("allMedia"));
-        endpoint = allMedia.endpoint + accessToken;
+        
+        // Only append accessToken if an endpoint was given (incomplete fetch)
+        if (allMedia.endpoint)
+            endpoint = allMedia.endpoint + accessToken;
+
     } else {
         endpoint = `http://localhost:8080/https://graph.instagram.com/me/media?access_token=${accessToken}`;
         allMedia["data"] = {}
@@ -158,12 +187,15 @@ async function loadMediaJSON() {
 
     allMedia = JSON.parse(text);
 
-    console.log(allMedia)
-    console.log(getLength())
+    if (allMedia["endpoint"])
+        console.log("This loaded JSON is incomplete and does not have all your posts!\nTo get all your posts, press Get instagram data.")
+
+
+    updateUI(true);
 }
 
 function handleMediaError(endpoint) {
-    console.log(`Only ${getLength()} posts were retrieved, please press "Get Instagram data" in an hour to continue retrieving all posts.`);
+    console.log(`Only ${getLength()} posts were retrieved in total.\nPlease refresh and press "Get instagram data" in an hour to continue retrieving all posts.`);
 
     // Save allMedia to local storage w/ failed endpoint
     allMedia["endpoint"] = endpoint.replace(/(?<=\?access_token=).*/, "");
@@ -183,4 +215,31 @@ function getLength() {
     }
 
     return total;
+}
+
+function updateUI(fromJSON = false) {
+
+    document.getElementById("calendars").style.display = "inline"
+    
+    // Only load logout/save buttons if not accessed from JSON
+    if (!(fromJSON)) {
+        document.getElementById("saveFile").style.display = "inline"
+        document.getElementById("logout").style.display = "inline"
+        document.getElementById("login").style.display = "none"
+    } else {
+        document.getElementById("login").style.display = "inline"
+        document.getElementById("saveFile").style.display = "none"
+        document.getElementById("logout").style.display = "none" 
+    }
+
+    console.log(allMedia)
+    console.log(getLength())
+}
+
+function logout() {
+
+    if (confirm("NOTE: Logging out will clear the retrieved Instagram data!\nAre you sure you want to log out?")) {
+        localStorage.clear();
+        window.location.href = "https://localhost:5173";
+    }
 }
