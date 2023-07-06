@@ -174,8 +174,8 @@ function getLength() {
     let total = 0;
 
     for (let month of Object.keys(allMedia["data"])) {
-        for (let day of Object.keys(month)) {
-            for (let post of Object.keys(day)) {
+        for (let day of Object.keys(allMedia["data"][month])) {
+            for (let post of Object.keys(allMedia["data"][month][day])) {
                 total++;
             }
         }
