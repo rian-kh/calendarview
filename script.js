@@ -36,11 +36,11 @@ async function onPageLoad() {
 
         await getMedia()
 
-    } 
-    
+    }
+
     // Load data if stored media data is complete (endpoint is null)
-    else if (localStorage.getItem("allMedia")){
-        if (!(JSON.parse(localStorage.getItem("allMedia"))["endpoint"])){
+    else if (localStorage.getItem("allMedia")) {
+        if (!(JSON.parse(localStorage.getItem("allMedia"))["endpoint"])) {
             allMedia = JSON.parse(localStorage.getItem("allMedia"));
         }
     }
@@ -49,9 +49,9 @@ async function onPageLoad() {
     if (Object.keys(allMedia).length > 0)
         updateUI()
 
-    
 
-    
+
+
 
 }
 
@@ -96,7 +96,7 @@ async function getMedia() {
     // Continue off previous fetched media, otherwise fetch from beginning
     if (localStorage.getItem("allMedia")) {
         allMedia = JSON.parse(localStorage.getItem("allMedia"));
-        
+
         // Only append accessToken if an endpoint was given (incomplete fetch)
         if (allMedia.endpoint)
             endpoint = allMedia.endpoint + accessToken;
@@ -106,10 +106,6 @@ async function getMedia() {
         allMedia["data"] = {}
     }
 
-
-    console.log("HI")
-    console.log(allMedia)
-    
 
     // Loop while the endpoint is not null (has a 'next' redirect)
     while (endpoint) {
@@ -126,10 +122,10 @@ async function getMedia() {
             return;
         }
 
-        
+
         console.log(result)
 
-        
+
 
 
         // Fetch media information for each ID
@@ -142,15 +138,15 @@ async function getMedia() {
                 handleMediaError(endpoint)
                 return;
             }
-            
+
             // Add media info by ID in allMedia's data key
             let date = new Date(mediaResult.timestamp);
-            let month = date.toLocaleString("en-us", {month:"long"})
-            let monthDay = date.toLocaleString("en-us", {month:"long", day:"2-digit"})
+            let month = date.toLocaleString("en-us", { month: "long" })
+            let monthDay = date.toLocaleString("en-us", { month: "long", day: "2-digit" })
 
             if (!(allMedia["data"][month]))
                 allMedia["data"][month] = {};
-            
+
             if (!(allMedia["data"][month][monthDay]))
                 allMedia["data"][month][monthDay] = {};
 
@@ -161,7 +157,7 @@ async function getMedia() {
         // Advance to next page
         endpoint = result.paging.next;
         console.log(`Advanced endpoint: ${endpoint}`)
-        
+
     }
 
 
@@ -219,8 +215,12 @@ function getLength() {
 
 function updateUI(fromJSON = false) {
 
+
+    console.log()
+
+    document.getElementById("calendars").innerHTML = "Hi";
     document.getElementById("calendars").style.display = "inline"
-    
+
     // Only load logout/save buttons if not accessed from JSON
     if (!(fromJSON)) {
         document.getElementById("saveFile").style.display = "inline"
@@ -229,11 +229,103 @@ function updateUI(fromJSON = false) {
     } else {
         document.getElementById("login").style.display = "inline"
         document.getElementById("saveFile").style.display = "none"
-        document.getElementById("logout").style.display = "none" 
+        document.getElementById("logout").style.display = "none"
     }
 
+
+    // Create calendars
+
+
+    // Use leap year to get all possible days
+    let date = new Date("01/01/2024");
+
+    // Tables should be 4 rows by 3 cols, increase month by 1 each time
+    let monthNum = 1;
+
+    for (let row = 0; row < 4; row++) {
+        let rowDiv = document.createElement('div');
+        rowDiv.setAttribute("class", "row");
+        
+
+
+        for (let col = 0; col < 3; col++) {
+
+            date = new Date(date.getFullYear(), monthNum, 0);
+            let month = date.toLocaleString("en-us",{month:"long"});
+            monthNum++;
+
+            let table = document.createElement('table');
+            
+            let currentDay = 1;
+
+            // Month header
+            let header = document.createElement('tr');
+            header.innerHTML = `<td colspan="7"><p>${month}</p></td>`
+            table.appendChild(header)
+
+            for (let tableRow = 0; tableRow < 5; tableRow++) {
+
+
+                let tableRowElement = document.createElement('tr')
+
+                for (let tableCol = 0; tableCol < 7; tableCol++) {
+                    let cell = document.createElement('td');
+                    let cellData = document.createElement('p');
+                    let key;
+                    
+                    // Pad day num with 0 to match allMedia keys
+                    if (currentDay < 10)
+                        key = `${month} 0${currentDay}`
+                    else
+                        key = `${month} ${currentDay}`
+                    
+                    // Only add day-related info if the day is <= the max days in the month
+                    if (currentDay <= date.getDate()) {
+                        cellData.setAttribute("id", key)
+                        cellData.textContent = currentDay;
+
+                        // Make text green if that day is present in allMedia
+
+                        if (allMedia["data"][month][key])
+                            cellData.style.color = "lime";
+
+
+                    }
+
+                    cell.appendChild(cellData);
+
+                    currentDay++;
+
+                    tableRowElement.appendChild(cell);
+                }
+
+                table.appendChild(tableRowElement);
+                
+                
+            }
+
+
+            rowDiv.appendChild(table);
+            
+
+
+
+        }
+
+        
+        document.getElementById("calendars").appendChild(rowDiv);
+
+    }
+
+
+    // date.toLocaleString("en-us", {month:"long"});
+
+    console.log(document.getElementById("calendars"))
+
     console.log(allMedia)
-    console.log(getLength())
+
+
+
 }
 
 function logout() {
