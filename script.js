@@ -348,7 +348,8 @@ function displayPost(month, key) {
 
     postDisplay.innerHTML = "";
 
-    for (let id of Object.keys(allMedia["data"][month][key])) {
+    // Display posts from oldest to newest (by year, maybe change to by actual date?)
+    for (let id of Object.keys(allMedia["data"][month][key]).sort((a, b) => parseInt(b) - parseInt(a))) {
 
         let post = allMedia["data"][month][key][id]
         let link = post.permalink;
