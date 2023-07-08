@@ -184,8 +184,7 @@ async function loadMediaJSON() {
 
     if (allMedia["endpoint"])
         console.log("This loaded JSON is incomplete and does not have all your posts!\nTo get all your posts, press Get instagram data.")
-
-
+    
     updateUI(true);
 }
 
@@ -217,8 +216,9 @@ function updateUI(fromJSON = false) {
 
     console.log()
 
-    document.getElementById("calendars").innerHTML = "<h3>Your calendar:</h3>";
+    document.getElementById("calendars").innerHTML = "<h3>Your calendar (Lighter = More posts):</h3>";
     document.getElementById("hidden").style.display = "inline"
+    document.getElementById("postSide").style.display = "none"
 
     // Only load logout/save buttons if not accessed from JSON
     if (!(fromJSON)) {
@@ -232,8 +232,25 @@ function updateUI(fromJSON = false) {
     }
 
 
-    // Create calendars
+    // Get max posts in a single day, for determining date colour
+    let maxPosts = 0;
+    
+    for (let month of Object.keys(allMedia["data"])) {
+        for (let day of Object.keys(allMedia["data"][month])) {
+            let posts = Object.keys(allMedia["data"][month][day]).length
 
+            if (posts > maxPosts)
+                maxPosts = posts;
+
+        }
+    }
+
+    let maxPostSegment = maxPosts / 4;
+    let colorThreshold = {"low":1, "medium":Math.floor(maxPostSegment * 2), "high":Math.floor(maxPostSegment * 3), "max":maxPosts}
+    
+
+
+    // Create calendars
 
     // Use leap year to get all possible days
     let date = new Date("01/01/2024");
@@ -288,7 +305,19 @@ function updateUI(fromJSON = false) {
 
                         if (allMedia["data"][month]) {
                             if (allMedia["data"][month][key]) {
-                                cellData.style.color = "lime";
+                                
+                                // Change date color based on # of posts on date
+                                let posts = Object.keys(allMedia["data"][month][key]).length;
+
+                                if (posts >= colorThreshold.low && posts < colorThreshold.medium)
+                                    cellData.style.color = "#048a04";
+                                else if (posts >= colorThreshold.medium && posts < colorThreshold.high)
+                                    cellData.style.color = "#04cf04";
+                                else if (posts >= colorThreshold.high && posts < colorThreshold.max)
+                                    cellData.style.color = "#22ff00";
+                                else if (posts == colorThreshold.max)
+                                    cellData.style.color = "#00ffa2";
+
                                 cellData.setAttribute("href", "javascript:;")
                                 cellData.setAttribute("onClick", `displayPost("${month}", "${key}")`)
                             }
@@ -333,7 +362,7 @@ function displayPost(month, key) {
     
     console.log(allMedia);
 
-    
+    document.getElementById("postSide").style.display = "inline"
 
     document.getElementById("dateText").textContent = `On ${key},`;
 
@@ -349,9 +378,11 @@ function displayPost(month, key) {
     postDisplay.innerHTML = "";
 
     // Display posts from oldest to newest (by year, maybe change to by actual date?)
-    for (let id of Object.keys(allMedia["data"][month][key]).sort((a, b) => parseInt(b) - parseInt(a))) {
+    for (let id of Object.keys(allMedia["data"][month][key]).sort((a, b) => new Date(allMedia["data"][month][key][a].timestamp).getFullYear() - new Date(allMedia["data"][month][key][b].timestamp).getFullYear())) {
 
+        
         let post = allMedia["data"][month][key][id]
+        console.log(post.timestamp)
         let link = post.permalink;
         let year = new Date(post.timestamp).getFullYear();
         
