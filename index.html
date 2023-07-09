@@ -1,41 +1,51 @@
 <html>
 
-<head>
-    <title>Calendar View</title>
-    <script src="script.js"></script>
-    <script async src="//www.instagram.com/embed.js"></script>
-    <link rel="stylesheet" href="styles.css">
-</head>
+    <head>
+        <title>Calendar View</title>
+        <script src="script.js"></script>
+        <script async src="//www.instagram.com/embed.js"></script>
+        <link rel="stylesheet" href="styles.css">
+    </head>
 
-<body>
-    <h1 id="header">Calendar View</h1>
+    <body>
+        <h1 id="header">Calendar View</h1>
+        <p>Uses your Instagram data to show you the posts you've made across the years, day by day.</p>
+        <p>Account must be public!</p>
+        <a id="github" href="https://github.com/rian-kh/calendarview" target="_blank">More about this site...</a>
+        <p>&nbsp;</p>
 
-    <div id="buttons">
-        <button id="login" onclick="redirect()">Get Instagram data</button>
-        <button id="logout" class="hideByDefault" onclick="logout()">Log out</button>
-
-        <!-- Adapted from https://stackoverflow.com/a/43509579/21809626 -->
-        <button onclick="document.getElementById('getFile').click()">Load Instagram data JSON</button>
-        <input type='file' id="getFile" onchange="loadMediaJSON()">
-
-        <button id="saveFile" class="hideByDefault" onclick="saveMediaJSON()">Save Instagram data JSON</button>
-
-
-    </div>
-
-    <div id="hidden" class="hideByDefault">
-        <div id="calendars">
-            
+        <div id="progress" class="hideByDefault">
+            <div id="progressBar">&nbsp;</div>
+            <span id="progressText"></span>
         </div>
-        
-        <div id="postSide" class="hideByDefault">
-            <h3 id="dateText"></h3>
 
-            <div id="postDisplay">
+        <div id="status" class="hideByDefault">
+            <p id="statusText"></p>
+        </div>
+
+        <div id="buttons">
+            <button id="login" onclick="redirect()">Get Instagram data</button>
+            <button id="logout" class="hideByDefault" onclick="logout()">Log out</button>
+
+            <!-- Adapted from https://stackoverflow.com/a/43509579/21809626 -->
+            <button id="load" onclick="document.getElementById('getFile').click()">Load Instagram data JSON</button>
+            <input type='file' id="getFile" onchange="loadMediaJSON()">
+
+            <button id="saveFile" class="hideByDefault" onclick="saveMediaJSON()">Save Instagram data JSON</button>
+        </div>
+
+        <div id="hidden" class="hideByDefault">
+            <div id="calendars">
 
             </div>
-        </div>
-    </div>
-</body>
 
+            <div id="postSide" class="hideByDefault">
+                <h3 id="dateText"></h3>
+
+                <div id="postDisplay">
+
+                </div>
+            </div>
+        </div>
+    </body>
 </html>
