@@ -1,7 +1,7 @@
 
 // Variables (fill in app ID and app secret in quotes here)
-let clientid = "";
-let secret = "";
+let clientid;
+let secret;
 
 
 // Code ran on page load
@@ -362,12 +362,14 @@ function updateUI(fromJSON = false) {
                                 // Change date color based on # of posts on date
                                 let posts = Object.keys(allMedia["data"][month][key]).length;
 
-                                if (posts >= colorThreshold.low && posts < colorThreshold.medium)
+                                if (posts == colorThreshold.low)
                                     cellData.style.color = "#048a04";
+                                else if (posts > colorThreshold.low && posts < colorThreshold.medium)
+                                    cellData.style.color = "#059e05";
                                 else if (posts >= colorThreshold.medium && posts < colorThreshold.high)
-                                    cellData.style.color = "#04cf04";
+                                    cellData.style.color = "#06c706";
                                 else if (posts >= colorThreshold.high && posts < colorThreshold.max)
-                                    cellData.style.color = "#22ff00";
+                                    cellData.style.color = "#00ff00";
                                 else if (posts == colorThreshold.max)
                                     cellData.style.color = "#00ffa2";
 
