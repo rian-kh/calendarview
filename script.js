@@ -1,7 +1,7 @@
 
-// Variables
-let clientid;
-let secret;
+// Variables (fill in app ID and app secret in quotes here)
+let clientid = "";
+let secret = "";
 
 
 // Code ran on page load
